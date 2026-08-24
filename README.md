@@ -25,6 +25,13 @@
 答：https://chat.deepseek.com/share/g15b6vfh7p4pgrxuz4
 
 
+### demo03
+
+> 一个符合生产标准的完整示例，包含错误处理、日志记录和合理的分层设计
+> - 流式 API 调用
+> - 只有 service 层
+
+
 
 
 
