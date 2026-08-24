@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>流式对话 - 双接口</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, sans-serif;
+            max-width: 820px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f5f7fb;
+            color: #1e293b;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 24px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 400;
+            margin-top: -4px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px 28px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9edf2;
+        }
+
+        .input-area {
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .input-area textarea {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 15px;
+            border: 1.5px solid #dce1e8;
+            border-radius: 10px;
+            background: #fafcff;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.6;
+            min-height: 80px;
+        }
+
+        .input-area textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 500;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary {
+            background: #8b5cf6;
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background: #7c3aed;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: #e9edf2;
+            color: #475569;
+            margin-left: 6px;
+        }
+
+        .badge-v1 {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .badge-v2 {
+            background: #ede9fe;
+            color: #6d28d9;
+        }
+
+        #output {
+            margin-top: 20px;
+            padding: 18px 22px;
+            border-radius: 12px;
+            border: 1.5px solid #e9edf2;
+            min-height: 220px;
+            max-height: 460px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #fafcff;
+            font-size: 15px;
+            line-height: 1.7;
+            transition: border-color 0.2s;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+
+        #output:empty::before {
+            content: '💬 输入消息后点击按钮，流式回复将显示在这里…';
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        #output .status-line {
+            display: block;
+            color: #475569;
+            font-size: 13px;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+        }
+
+        #output .status-line.done {
+            color: #16a34a;
+            border-bottom-color: #bbf7d0;
+        }
+
+        #output .status-line.stop {
+            color: #f59e0b;
+            border-bottom-color: #fde68a;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #64748b;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .status-bar .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .dot.idle {
+            background: #94a3b8;
+        }
+        .dot.streaming {
+            background: #22c55e;
+            animation: pulse-dot 1s ease-in-out infinite;
+        }
+        .dot.done {
+            background: #22c55e;
+        }
+        .dot.error {
+            background: #ef4444;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.4;
+                transform: scale(0.8);
+            }
+        }
+
+        .footer-hint {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #94a3b8;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .footer-hint kbd {
+            background: #f1f5f9;
+            padding: 1px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>
+    🧠 流式对话
+    <span style="font-size:14px;font-weight:400;color:#64748b;margin-left:auto;">
+            SSE · 双接口
+        </span>
+</h1>
+<div class="subtitle">
+    分别调用 <code>/api/chat/stream</code> 与 <code>/api/chat/streamV2</code>
+</div>
+
+<div class="card">
+    <!-- 输入区：多行文本框单独占一行 -->
+    <div class="input-area">
+        <textarea id="message" placeholder="输入你想问的问题…（Shift+Enter 换行，Enter 发送）" rows="3">写一首关于 Spring AI 的诗</textarea>
+    </div>
+
+    <!-- 按钮组：三个按钮在同一行 -->
+    <div class="btn-group">
+        <button class="btn btn-primary" id="sendV1">
+            <span>▶</span> Stream V1
+            <span class="badge badge-v1">chatService</span>
+        </button>
+        <button class="btn btn-secondary" id="sendV2">
+            <span>▶</span> Stream V2
+            <span class="badge badge-v2">client</span>
+        </button>
+        <button class="btn btn-danger" id="stopBtn" disabled>
+            <span>⏹</span> 停止
+        </button>
+    </div>
+
+    <div id="output"></div>
+
+    <div class="status-bar">
+            <span id="statusText">
+                <span class="dot idle" id="statusDot"></span>
+                <span id="statusLabel">就绪</span>
+            </span>
+        <span id="timerDisplay" style="font-variant-numeric:tabular-nums;">—</span>
+    </div>
+
+    <div class="footer-hint">
+        <span>📌 <kbd>Enter</kbd> 发送（默认 V1） · <kbd>Shift+Enter</kbd> 换行</span>
+        <span>🔗 <kbd>V1</kbd> → streamChat &nbsp;|&nbsp; <kbd>V2</kbd> → streamClientChat</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // ---------- DOM refs ----------
+        const output = document.getElementById('output');
+        const messageInput = document.getElementById('message'); // textarea
+        const sendV1Btn = document.getElementById('sendV1');
+        const sendV2Btn = document.getElementById('sendV2');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusDot = document.getElementById('statusDot');
+        const statusLabel = document.getElementById('statusLabel');
+        const timerDisplay = document.getElementById('timerDisplay');
+
+        // ---------- state ----------
+        let eventSource = null;
+        let activeController = null; // 'v1' 或 'v2'
+        let startTime = null;
+        let timerInterval = null;
+
+        // ---------- helpers ----------
+        function setStatus(mode, text) {
+            statusDot.className = 'dot';
+            if (mode === 'idle') {
+                statusDot.classList.add('idle');
+            } else if (mode === 'streaming') {
+                statusDot.classList.add('streaming');
+            } else if (mode === 'done') {
+                statusDot.classList.add('done');
+            } else if (mode === 'error') {
+                statusDot.classList.add('error');
+            }
+            statusLabel.textContent = text;
+        }
+
+        function updateTimer() {
+            if (!startTime) {
+                timerDisplay.textContent = '—';
+                return;
+            }
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+            const secs = String(elapsed % 60).padStart(2, '0');
+            timerDisplay.textContent = `⏱ ${mins}:${secs}`;
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            updateTimer();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            timerDisplay.textContent = '—';
+            startTime = null;
+        }
+
+        function setButtonsEnabled(enabled) {
+            sendV1Btn.disabled = !enabled;
+            sendV2Btn.disabled = !enabled;
+            stopBtn.disabled = enabled; // enabled=true 时停止不可用（未流式）
+        }
+
+        function appendStatusLine(text, type) {
+            const div = document.createElement('div');
+            div.className = 'status-line';
+            if (type) div.classList.add(type);
+            div.textContent = text;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearOutput() {
+            output.textContent = '';
+        }
+
+        // ---------- 清理连接（重置状态） ----------
+        function cleanup(resetStatus) {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            stopTimer();
+            if (resetStatus !== false) { // 默认重置为 idle
+                setStatus('idle', '就绪');
+            }
+            setButtonsEnabled(true);
+            activeController = null;
+            stopBtn.disabled = true;
+        }
+
+        // ---------- 统一结束处理（不区分原因） ----------
+        function handleStreamEnd() {
+            if (!eventSource) return;
+            appendStatusLine(`✅ 流已结束 — ${new Date().toLocaleTimeString()}`, 'done');
+            cleanup(false);
+            setStatus('done', '流已结束');
+            setButtonsEnabled(true);
+            stopBtn.disabled = true;
+        }
+
+        // ---------- 停止（手动） ----------
+        function stopStream() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            if (activeController) {
+                appendStatusLine(`⏹ [${activeController.toUpperCase()}] 已手动停止 — ${new Date().toLocaleTimeString()}`, 'stop');
+            } else {
+                appendStatusLine('⏹ 已手动停止', 'stop');
+            }
+            cleanup(true);
+            setStatus('idle', '就绪');
+        }
+
+        // ---------- 启动流式 ----------
+        function startStream(version) {
+            const message = messageInput.value.trim();
+            if (!message) {
+                output.textContent = '⚠️ 请输入消息内容。';
+                return;
+            }
+
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            stopTimer();
+            clearOutput();
+
+            let url;
+            let label;
+            if (version === 'v1') {
+                url = `http://localhost:8080/api/chat/stream?message=${encodeURIComponent(message)}`;
+                label = 'V1 (streamChat)';
+            } else {
+                url = `http://localhost:8080/api/chat/streamV2?message=${encodeURIComponent(message)}`;
+                label = 'V2 (streamClientChat)';
+            }
+
+            activeController = version;
+            setStatus('streaming', `🔄 流式传输中 · ${label}`);
+            setButtonsEnabled(false);
+            startTimer();
+
+            appendStatusLine(`🚀 [${label}] 开始流式响应 — ${new Date().toLocaleTimeString()}`, '');
+
+            try {
+                eventSource = new EventSource(url);
+
+                eventSource.onmessage = (event) => {
+                    if (event.data) {
+                        const lastChild = output.lastChild;
+                        if (lastChild && lastChild.nodeType === Node.TEXT_NODE) {
+                            lastChild.textContent += event.data;
+                        } else {
+                            const textNode = document.createTextNode(event.data);
+                            output.appendChild(textNode);
+                        }
+                        output.scrollTop = output.scrollHeight;
+                    }
+                };
+
+                eventSource.onerror = () => {
+                    if (eventSource) {
+                        handleStreamEnd();
+                    }
+                };
+
+                eventSource.onopen = () => {
+                    // 可选
+                };
+
+            } catch (e) {
+                appendStatusLine(`❌ 创建连接失败: ${e.message}`, 'error');
+                setStatus('error', '创建失败');
+                cleanup(true);
+            }
+        }
+
+        // ---------- 事件绑定 ----------
+        sendV1Btn.addEventListener('click', () => startStream('v1'));
+        sendV2Btn.addEventListener('click', () => startStream('v2'));
+        stopBtn.addEventListener('click', stopStream);
+
+        // textarea 键盘事件：Enter 发送（无 Shift），Shift+Enter 换行
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (!e.shiftKey) {
+                    e.preventDefault(); // 阻止默认换行
+                    startStream('v1');
+                }
+                // 如果 shiftKey 为 true，则允许默认换行，不做处理
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            if (timerInterval) clearInterval(timerInterval);
+        });
+
+        // 初始化
+        setStatus('idle', '就绪');
+        setButtonsEnabled(true);
+        stopBtn.disabled = true;
+
+        // 点击输出区域聚焦输入框
+        output.addEventListener('click', () => messageInput.focus());
+
+        console.log('✅ 双接口流式对话已加载 (多行输入)');
+    })();
+</script>
+
+</body>
+</html>
