@@ -1,0 +1,41 @@
+# 应用服务 WEB 访问端口
+server:
+  port: 8080
+
+spring:
+  ai:
+    # ── OpenAI 配置 ──────────────────────────────────────────
+#    openai:
+#      api-key: ${OPENAI_API_KEY}        # 从环境变量读取，避免硬编码到代码库
+#      base-url: https://api.openai.com  # 可替换为代理地址或兼容服务（如 DeepSeek）
+#      chat:
+#        options:
+#          model: gpt-4o-mini            # 默认使用的模型，可在运行时覆盖
+#          temperature: 0.7              # 生成随机性，0=确定性，1=最随机
+#          max-tokens: 2048              # 单次响应最大 token 数
+#          top-p: 1.0                    # 核采样，通常与 temperature 二选一
+#      embedding:
+#        options:
+#          model: text-embedding-3-small # 嵌入模型，独立配置
+
+    # ── Ollama 本地配置 ───────────────────────────────────────
+    ollama:
+      base-url: http://localhost:11434  # Ollama 默认端口
+      chat:
+        options:
+          model: llama3.2               # 已 pull 的本地模型名称
+          temperature: 0.5
+
+    # ── DeepSeek 配置（复用 OpenAI Starter）────────────────────
+    # 在 application-deepseek.yml 中：
+    # openai:
+    #   api-key: ${DEEPSEEK_API_KEY}
+    #   base-url: https://api.deepseek.com
+    #   chat:
+    #     options:
+    #       model: deepseek-chat
+
+logging:
+  level:
+    # 开启 Spring AI 的请求/响应日志，便于调试
+    org.springframework.ai: DEBUG
