@@ -111,6 +111,14 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下一部分，才是 
 1. RAG 这个思想是怎么提出来的？怎样的背景下诞生的？具体的设计实现又是怎么想到的？<br/>
    答：
 
+### demo12
+
+> 一个完整的文档 ETL（Extract提取 -> Transform分块 -> Load入库）流程
+> 
+> - `DocumentReader`：提取源文件（txt、md、word、pdf等）根据不同实现类生成为文档 `Document`
+> - `TextSplitter`：将文档根据不同实现类的分块规制进行分块
+> - `VectorStore`：向量数据库（不同的具体实现：postgreSQL、Redis、ES 等）
+
 
 
 
