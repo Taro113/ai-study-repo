@@ -85,7 +85,7 @@
 
 ### 总结
 
-demo01-demo08 主要是了解 Spring AI 框架的使用，下一部分，才是 AI 应用真正企业级核心技术
+demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 AI 应用真正企业级核心技术
 
 ---
 
@@ -152,3 +152,23 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下一部分，才是 
 
 1. 可优化点？<br/>
 答：异步调用、安全校验、敏感数据脱敏、写操作二次确认
+
+## 第三章：高级特性与生产实践
+
+> 本章是 Spring AI 系列第三部分，涵盖 Advisors、Chat Memory、MCP 协议、图像/音频模型和可观测性。
+
+### demo21
+
+> 没有这个 `demo21`，这个 `demo21` 用于介绍 `Advisor` 的生产实践，其使用在上面的 `demo5`、`demo6`、`demo13` 中已经学习过了
+> 
+> `Advisor` 开发最佳企业实践：
+> 
+> 1. 调用顺序是同步的，按 `order` 顺序调用，但是其数据处理是异步的，`stream API` 也是异步的
+> 2. `Order` 规划：安全过滤 -> 限流 -> 记忆/RAG -> 业务逻辑 -> 日志
+> 3. 无状态设计：道理同1，`Advisor Bean` 通常是单例，避免在 `Advisor` 内存储请求级别的动态状态数据
+> 4. `adviseContext` 传参：通过 `request.adviseContext()` 传递 `userId`、`traceId` 等元数据信息，禁止用 `ThreadLocal`
+> 5. 流式同步：实现了 `CallAdvisor` 就一并实现 `StreamAdvisor`，保持行为一致
+> 6. 异常处理：`Advisor` 内的异常不要吞掉，向上传播以便统一错误处理
+
+
+
