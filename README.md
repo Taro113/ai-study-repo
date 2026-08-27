@@ -156,10 +156,12 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 ## 第三章：高级特性与生产实践
 
 > 本章是 Spring AI 系列第三部分，涵盖 Advisors、Chat Memory、MCP 协议、图像/音频模型和可观测性。
+> 
+> 没有  `demo21`、`demo22` 工程代码
 
 ### demo21
 
-> 没有这个 `demo21`，这个 `demo21` 用于介绍 `Advisor` 的生产实践，其使用在上面的 `demo5`、`demo6`、`demo13` 中已经学习过了
+> 用于介绍 `Advisor` 的生产实践，其使用在上面的 `demo5`、`demo6`、`demo13` 中已经学习过了
 > 
 > `Advisor` 开发最佳企业实践：
 > 
@@ -169,6 +171,16 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 > 4. `adviseContext` 传参：通过 `request.adviseContext()` 传递 `userId`、`traceId` 等元数据信息，禁止用 `ThreadLocal`
 > 5. 流式同步：实现了 `CallAdvisor` 就一并实现 `StreamAdvisor`，保持行为一致
 > 6. 异常处理：`Advisor` 内的异常不要吞掉，向上传播以便统一错误处理
+
+### demo22
+
+> 用于介绍 `ChatMemory` 的生产实践，其使用主要是通过几个实现了 `BaseChatMemoryAdvisor` 的特定的 `Advisor`
+>
+> `ChatMemoryAdvisor` 开发最佳企业实践：
+>
+> 1. 三个 `Advisor`：`MessageChatMemoryAdvisor`、`PromptChatMemoryAdvisor`（1.0 版本已废弃）、`VectorStoreChatMemoryAdvisor`
+> 2. `.advisors()` 方法会将参数传递到 `adviseContext` 上下文对象中去，各 `Advisor` 按需取用
+
 
 
 
