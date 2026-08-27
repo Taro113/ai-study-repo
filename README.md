@@ -155,9 +155,12 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 
 ## 第三章：高级特性与生产实践
 
-> 本章是 Spring AI 系列第三部分，涵盖 Advisors、Chat Memory、MCP 协议、图像/音频模型和可观测性。
+> 本章是 Spring AI 系列第三部分，
 > 
-> 没有  `demo21`、`demo22` 工程代码
+> 1. Advisors、Chat Memory、MCP 协议、图像/音频模型和可观测性
+> 2. RAG 深度实践（文档解析 -> 分块策略 -> 向量检索优化 -> 重排序），以及 Function Calling 高级模式（并行调用、嵌套调用、工具链编排）
+> 
+> 没有  `demo21 ~ demo24` 的关于 1 的工程代码
 
 ### demo21
 
@@ -180,6 +183,44 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 >
 > 1. 三个 `Advisor`：`MessageChatMemoryAdvisor`、`PromptChatMemoryAdvisor`（1.0 版本已废弃）、`VectorStoreChatMemoryAdvisor`
 > 2. `.advisors()` 方法会将参数传递到 `adviseContext` 上下文对象中去，各 `Advisor` 按需取用
+
+### demo23
+
+> 多模态：多模态输入：、图片生成
+
+### demo24
+
+> 可观测性：
+> 
+> 完整的生产环境可观测性技术栈如下：
+> 
+> ```text
+> Spring AI Application
+> │
+> ├── Metrics (Micrometer → Prometheus)
+> │     └── Prometheus → Grafana Dashboard + AlertManager → PagerDuty/钉钉
+> │
+> ├── Tracing (Micrometer Tracing → Zipkin/Jaeger)
+> │     └── 分布式链路追踪，关联 HTTP→LLM→VectorDB 完整调用链
+> │
+> ├── Logging (SLF4J → ELK / Loki)
+> │     ├── SimpleLoggerAdvisor → 结构化 JSON 日志
+> │     └── MDC 注入 traceId，日志可与 Trace 关联
+> │
+> └── Custom Observation (ObservationHandler)
+> └── 写入业务数据库 → BI 分析 → 成本报告
+> 
+> ```
+> 
+> 生产可观测性 checkList：
+> 
+> 1. Prometheus + Grafana 监控 LLM 延迟、token 用量、错误率
+> 2. 分布式追踪接入 Zipkin/Jaeger，traceId 注入所有日志
+> 3. 成本告警：日预算超标立即通知，避免账单爆炸
+> 4. `include-prompt: false`（生存环境禁止在 Span 中记录 Prompt，防止敏感信息泄露）
+> 5. Prometheus 采样率生产环境设 0.1（10%），避免 Zipkin 数据过多
+> 6. Token 用量按 userId/model 分维度统计，便于成本分摊和异常用户识别
+
 
 
 
