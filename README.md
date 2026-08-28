@@ -223,7 +223,8 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 
 ### demo25
 
-> 一个最简单易懂的单 Agent 类，它能够搜索网页、查询数据库、生成报告
+> 一个最简单易懂的单 Agent 类，它能够搜索网页、查询数据库、生成报告<br/>
+> 一个 Agent 在代码里相当于一个 ChatClient
 > 
 > AI Agent（智能体）：
 > 
@@ -231,6 +232,75 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 > 2. 动态规划执行路径：根据中间结果调整下一步行动
 > 3. 处理失败并重试：工具调用失败时，能够换一种方式尝试
 > 4. 在多个工具间协调：组合使用搜索、计算、数据库等工具完成复杂任务
+
+### demo26
+
+> 多 Agent 协作模式：
+> 
+> 1. 串行化调用：多个 ChatClient 串行化依次调用，适用于结果依赖场景
+> 2. 并行调用：通过 CompletableFeature 异步编排多个 ChatClient，等待所有异步线程执行完，汇总结果
+> 3. 主管模式：一个主 Agent 负责任务下发和质量把控，由子 Agent 执行具体任务并告知执行结果<br/>
+> <details>
+>   <summary>主管模式示例</summary>
+> 
+>   ```java
+>   // pattern/SupervisorAgent.java
+> @Service
+> public class SupervisorAgent {
+> 
+>     private final ChatClient supervisor;      // 主 Agent
+>     private final Map<String, ChatClient> workers;    // 用到的子 Agent
+> 
+>     // Supervisor 的任务：分解目标、分配给合适的 Worker、检查质量
+>     private static final String SUPERVISOR_PROMPT = """
+>         你是一个任务协调主管。你可以将任务分配给以下专业 Worker：
+>         - research_worker: 信息收集和网络搜索
+>         - data_worker: 数据库查询和数据分析
+>         - writing_worker: 内容撰写和格式化
+> 
+>         请以 JSON 格式返回任务分配方案：
+>         {
+>             "plan": "任务分解说明",
+>             "assignments": [
+>                 {"worker": "worker_name", "task": "具体任务描述"},
+>                 ...
+>             ]
+>         }
+>         """;
+> 
+>     public String coordinate(String goal) {
+>         // Supervisor 制定计划
+>         TaskPlan plan = supervisor.prompt()
+>             .user("用户目标：" + goal + "\n\n请制定任务分配方案")
+>             .call()
+>             .entity(TaskPlan.class);
+> 
+>         // 执行各 Worker 任务
+>         List<String> results = new ArrayList<>();
+>         for (Assignment assignment : plan.assignments()) {
+>             ChatClient worker = workers.get(assignment.worker());
+>             if (worker != null) {
+>                 String result = worker.prompt()
+>                     .user(assignment.task())
+>                     .call().content();
+>                 results.add("[" + assignment.worker() + "]\n" + result);
+>             }
+>         }
+> 
+>         // Supervisor 汇总并检查质量
+>         return supervisor.prompt()
+>             .user("原始目标：" + goal + "\n\n各 Worker 执行结果：\n" +
+>                 String.join("\n\n", results) + "\n\n请整合所有结果，给出最终答案。")
+>             .call().content();
+>     }
+> 
+>     record TaskPlan(String plan, List<Assignment> assignments) {}
+>     record Assignment(String worker, String task) {}
+> }
+> 
+>   ```
+> 
+> </details>
 
 
 
