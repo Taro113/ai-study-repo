@@ -117,7 +117,7 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 > 
 > - `DocumentReader`：提取源文件（txt、md、word、pdf等）根据不同实现类生成为文档 `Document`
 > - `TextSplitter`：将文档根据不同实现类的分块规制进行分块
-> - `VectorStore`：向量数据库（不同的具体实现：postgreSQL、Redis、ES 等）
+> - `VectorStorePO`：向量数据库（不同的具体实现：postgreSQL、Redis、ES 等）
 
 ### demo13
 
@@ -257,7 +257,6 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 >         - research_worker: 信息收集和网络搜索
 >         - data_worker: 数据库查询和数据分析
 >         - writing_worker: 内容撰写和格式化
-> 
 >         请以 JSON 格式返回任务分配方案：
 >         {
 >             "plan": "任务分解说明",
@@ -265,8 +264,7 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 >                 {"worker": "worker_name", "task": "具体任务描述"},
 >                 ...
 >             ]
->         }
->         """;
+>         }""";
 > 
 >     public String coordinate(String goal) {
 >         // Supervisor 制定计划
