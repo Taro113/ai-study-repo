@@ -4,6 +4,7 @@ import com.gao.demo32.exception.ChatException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 @Service
 @Slf4j
@@ -51,19 +52,19 @@ public class ChatService {
         }
     }
 
-//    public Flux<String> streamChat(String sessionId, String message, String preferredModel) {
+    public Flux<String> streamChat(String sessionId, String message, Integer taskStrategy) {
 //        ChatClient client = routingService.selectClient(preferredModel);
-//
-//        return client.prompt()
-//                .user(message)
+
+        return chatClient.prompt()
+                .user(message)
 //                .advisors(a -> a.param(
 //                        MessageChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, sessionId
 //                ))
-//                .stream()
-//                .content()
-//                // 收集完整响应用于持久化
-//                .doOnComplete(() -> log.debug("Stream completed | session={}", sessionId));
-//    }
+                .stream()
+                .content()
+                // 收集完整响应用于持久化
+                .doOnComplete(() -> log.info("Stream completed | session={}", sessionId));
+    }
 
 //    public List<ConversationMessage> getHistory(String sessionId, int limit) {
 //        return conversationRepository.findBySessionId(sessionId, limit);
