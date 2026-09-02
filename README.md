@@ -330,6 +330,19 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 
 > **知识库问答项目**
 
+#### 重点
+
+1. `Message` 类
+- 四个实现类：`SystemMessage`、`UserMessage`、`AssistantMessage`、`ToolResponseMessage`
+- `SystemMessage`：给AI的“指令”或“人设”，设定它的身份和行为准则。
+- `UserMessage`：用户的“提问”或“输入”，代表人类发送给AI的消息。
+- `AssistantMessage`：AI的“回答”或“思考”，代表模型生成的回复内容。
+- `ToolResponseMessage`：工具的“执行结果”，在AI调用外部工具后，将结果返回给AI。
+2. 啊啊
+3. 啊啊
+4. 啊啊
+5. 啊啊
+
 
 
 
