@@ -1,5 +1,6 @@
 package com.gao.demo32.config;
 
+import com.gao.demo32.advisor.ChatMemoryManageAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +15,7 @@ public class AiConfig {
      * ChatClient.Builder 由 Spring AI Auto-Configuration 自动提供
      */
     @Bean
-    public ChatClient chatClient(ChatClient.Builder builder) {
+    public ChatClient chatClient(ChatClient.Builder builder, ChatMemoryManageAdvisor chatMemoryManageAdvisor) {
         return builder
                 // 设置默认系统提示词（所有通过此 ChatClient 发出的请求都会附带）
                 .defaultSystem("""
@@ -34,6 +35,7 @@ public class AiConfig {
                         .temperature(0.75)
                         .maxTokens(1000)
                         .build())
+                .defaultAdvisors(chatMemoryManageAdvisor)
                 .build();
     }
 }
