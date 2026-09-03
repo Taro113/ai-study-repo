@@ -42,8 +42,7 @@ spring:
     ollama:
       base-url: http://localhost:11434  # Ollama 默认端口
       embedding:
-        options:
-          model: bge-m3                 # embedding 模型
+        model: bge-m3                 # embedding 模型
       chat:
         options:
           model: llama3.2               # 已 pull 的本地模型名称

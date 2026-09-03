@@ -10,8 +10,8 @@ public class DocumentReaderConfig {
     @Bean
     public PdfDocumentReaderConfig pdfDocumentReaderConfig() {
         return PdfDocumentReaderConfig.builder()
-                .withPageTopMargin(50).
-                withPageBottomMargin(30)
+                .withPageTopMargin(50)
+                .withPageBottomMargin(30)
                 .build();
     }
 
