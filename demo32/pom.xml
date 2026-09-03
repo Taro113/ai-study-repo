@@ -98,6 +98,12 @@
             <artifactId>spring-ai-tika-document-reader</artifactId>
         </dependency>
 
+        <!-- md 文档阅读器 -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-markdown-document-reader</artifactId>
+        </dependency>
+
         <!-- 缓存 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
