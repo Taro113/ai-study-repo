@@ -2,9 +2,9 @@ package com.gao.demo32.service;
 
 import com.gao.demo32.exception.ChatException;
 import com.gao.demo32.repository.ConversationRepository;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -14,47 +14,25 @@ import reactor.core.scheduler.Schedulers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @Slf4j
+@AllArgsConstructor
 public class ChatService {
 
     private final ChatClient chatClient;
-//    private final ModelRoutingService routingService;
     private final ConversationRepository conversationRepository;
-
-    public ChatService(
-            ChatClient chatClient,
-//            ModelRoutingService routingService,
-            ConversationRepository conversationRepository
-    ) {
-        this.chatClient = chatClient;
-//        this.routingService = routingService;
-        this.conversationRepository = conversationRepository;
-    }
 
     public String chat(String sessionId, String message, Integer taskStrategy) {
         log.info("Chat request | session={} | model={} | msgLen={}", sessionId, taskStrategy, message.length());
 
-        // 根据请求路由到合适的模型
-//        ChatClient client = routingService.selectClient(taskStrategy);
-
         try {
-            String response = chatClient.prompt()
+
+            return chatClient.prompt()
                     .user(message)
-//                    .advisors(a -> a.param(
-//                            MessageChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY, sessionId
-//                    ))
+                    .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
                     .call()
                     .content();
-
-            // 异步持久化对话历史（不阻塞主流程）
-            CompletableFuture.runAsync(() ->
-                    conversationRepository.save(sessionId, message, response)
-            );
-
-            return response;
 
         } catch (Exception e) {
             log.error("Chat failed | session={}", sessionId, e);
@@ -63,7 +41,7 @@ public class ChatService {
     }
 
     public Flux<String> streamChat(String sessionId, String message, Integer taskStrategy) {
-//        ChatClient client = routingService.selectClient(preferredModel);
+        log.info("streamChat request | session={} | model={} | msgLen={}", sessionId, taskStrategy, message.length());
 
         // 每个请求独立的累积容器
         List<String> tokenAccumulator = Collections.synchronizedList(new ArrayList<>());
@@ -71,9 +49,7 @@ public class ChatService {
         // 收集每一个 token
         return chatClient.prompt()
                 .user(message)
-                .advisors(a -> a.param(
-                        ChatMemory.CONVERSATION_ID, sessionId
-                ))
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, sessionId))
                 .stream()
                 .content()
                 .doOnNext(tokenAccumulator::add)
@@ -90,12 +66,4 @@ public class ChatService {
                     log.info("Stream completed, response length={}", fullResponse.length());
                 });
     }
-
-//    public List<ConversationMessage> getHistory(String sessionId, int limit) {
-//        return conversationRepository.findBySessionId(sessionId, limit);
-//    }
-
-//    public void clearHistory(String sessionId) {
-//        conversationRepository.deleteBySessionId(sessionId);
-//    }
 }

@@ -1,21 +1,43 @@
 package com.gao.demo32.config;
 
-import com.gao.demo32.advisor.ChatMemoryManageAdvisor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.ChatMemoryRepository;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 //@EnableRetry
+@Slf4j
 public class AiConfig {
+
+//    @Bean
+//    public ChatMemoryRepository chatMemoryRepository() {
+//        ChatMemoryRepository repository = new InMemoryChatMemoryRepository();
+//        log.info("ChatMemoryRepository bean created: {}", repository.getClass().getName());
+//        return repository;
+//    }
+
+    @Bean
+    public ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository) {
+        ChatMemory memory = MessageWindowChatMemory.builder()
+                .chatMemoryRepository(chatMemoryRepository)
+                .maxMessages(10)
+                .build();
+        log.info("ChatMemory bean created: {}", memory.getClass().getName());
+        return memory;
+    }
 
     /**
      * 创建带默认配置的 ChatClient Bean
      * ChatClient.Builder 由 Spring AI Auto-Configuration 自动提供
      */
     @Bean
-    public ChatClient chatClient(ChatClient.Builder builder, ChatMemoryManageAdvisor chatMemoryManageAdvisor) {
+    public ChatClient chatClient(ChatClient.Builder builder, ChatMemory chatMemory) {
         return builder
                 // 设置默认系统提示词（所有通过此 ChatClient 发出的请求都会附带）
                 .defaultSystem("""
@@ -35,7 +57,7 @@ public class AiConfig {
                         .temperature(0.75)
                         .maxTokens(1000)
                         .build())
-                .defaultAdvisors(chatMemoryManageAdvisor)
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
     }
 }

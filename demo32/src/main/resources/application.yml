@@ -61,5 +61,5 @@ spring:
 logging:
   level:
     # 开启 Spring AI 的请求/响应日志，便于调试
-    org.springframework.ai: DEBUG
+    org.springframework.ai: INFO
 

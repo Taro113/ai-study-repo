@@ -338,8 +338,45 @@ demo01-demo08 主要是了解 Spring AI 框架的使用，下面章节，才是 
 - `UserMessage`：用户的“提问”或“输入”，代表人类发送给AI的消息。
 - `AssistantMessage`：AI的“回答”或“思考”，代表模型生成的回复内容。
 - `ToolResponseMessage`：工具的“执行结果”，在AI调用外部工具后，将结果返回给AI。
-2. 啊啊
-3. 啊啊
+2. 记忆检索基础 Advisor -- `BaseChatMemoryAdvisor`：
+- 三个实现类：`MessageChatMemoryAdvisor`、`PromptChatMemoryAdvisor`、`VectorStoreChatMemoryAdvisor`
+- `MessageChatMemoryAdvisor`：把最近的对话历史以标准的消息列表格式（user、assistant 角色）添加到每次请求中
+- `PromptChatMemoryAdvisor`：**已弃用**，功能与 `MessageChatMemoryAdvisor` 类似，但实现方式不同。它是将历史对话拼接到系统提示词（System Prompt）中
+- `VectorStoreChatMemoryAdvisor`：使用向量数据库（VectorStore）来存储和检索历史对话，它适用于超长对话或需要语义化回忆的场景，能从全部历史中智能检索相关片段
+3. 当前的基于内存的记忆管理完全可以用：`MessageChatMemoryAdvisor` + `MessageWindowChatMemory` + `InMemoryChatMemoryRepository` 实现<br/>
+```java
+//@Bean
+//public ChatMemoryRepository chatMemoryRepository() {
+//   ChatMemoryRepository repository = new InMemoryChatMemoryRepository();
+//   log.info("ChatMemoryRepository bean created: {}", repository.getClass().getName());
+//   return repository;
+//}
+
+@Bean
+public ChatMemory chatMemory(ChatMemoryRepository chatMemoryRepository) {
+   ChatMemory memory = MessageWindowChatMemory.builder()
+           .chatMemoryRepository(chatMemoryRepository)
+           .maxMessages(10)
+           .build();
+   log.info("ChatMemory bean created: {}", memory.getClass().getName());
+   return memory;
+}
+
+@Bean
+public ChatClient chatClient(ChatClient.Builder chatClientBuilder, ChatMemory chatMemory) {
+   return chatClientBuilder
+           .defaultAdvisors(
+                   MessageChatMemoryAdvisor.builder(chatMemory).build() // 注册记忆Advisor
+           )
+           .build();
+}
+```
+
+注意：
+- 在构建 `ChatMemory` 时，输入的 `ChatMemoryRepository` 不能是手动 new 出来的，必须放到 Spring 中管理
+- Spring AI 会自动构建一个 `ChatMemoryRepository` Bean，当在 `ChatMemory` 里是手动 new 出来的话，导致有两个 `ChatMemoryRepository`，save 的是自动配置的 Bean，get 的是手动 new 出来的，这俩对象不是同一个，导致记忆失效
+- 该手动注入  `ChatMemoryRepository` Bean 方式会覆盖 Spring AI 自动构建的对象
+
 4. 啊啊
 5. 啊啊
 
